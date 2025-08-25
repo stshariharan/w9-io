@@ -1,178 +1,132 @@
-// import ThirdParty from "supertokens-node/recipe/thirdparty";
-// import EmailPassword from "supertokens-node/recipe/emailpassword";
-// import Session from "supertokens-node/recipe/session";
-// import { TypeInput } from "supertokens-node/types";
-// import Dashboard from "supertokens-node/recipe/dashboard";
-// import UserRoles from "supertokens-node/recipe/userroles";
-// import config from "./env";
+import ThirdParty from "supertokens-node/recipe/thirdparty";
+import EmailPassword from "supertokens-node/recipe/emailpassword";
+import Session from "supertokens-node/recipe/session";
+import { TypeInput } from "supertokens-node/types";
+import Dashboard from "supertokens-node/recipe/dashboard";
+import UserRoles from "supertokens-node/recipe/userroles";
+import config from "./env";
 
-// export const SuperTokensConfig: TypeInput = {
-//   supertokens: {
-//     // this is the location of the SuperTokens core.
-//     connectionURI: config.SuperTokensUrl,
-//     apiKey: config.SuperTokensApiKey,
-//   },
-//   appInfo: {
-//     appName: "w9-io",
-//     apiDomain: config.ApiUrl,
-//     websiteDomain: config.AppUrl,
-//   },
-//   // recipeList contains all the modules that you want to
-//   // use from SuperTokens. See the full list here: https://supertokens.com/docs/guides
-//   recipeList: [
-//     ThirdPartyEmailPassword.init({
-//       providers: [
-//         {
-//           config: {
-//             thirdPartyId: "google",
-//             clients: [
-//               {
-//                 clientId: process.env.GOOGLE_CLIENT_ID,
-//                 clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-//               },
-//             ],
-//           },
-//         },
-//         {
-//           config: {
-//             thirdPartyId: "apple",
-//             clients: [
-//               {
-//                 clientId: process.env.APPLE_CLIENT_ID,
-//                 additionalConfig: {
-//                   keyId: process.env.APPLE_KEY_ID,
-//                   privateKey: process.env.APPLE_PRIVATE_KEY,
-//                   teamId: process.env.APPLE_TEAM_ID,
-//                 },
-//               },
-//             ],
-//           },
-//         },
-//       ],
-//       // Override default APIs to handle custom form fields
-//       override: {
-//         apis: (originalImplementation) => {
-//           return {
-//             ...originalImplementation,
-//             emailPasswordSignUpPOST: async function (input) {
-//               // Extract custom fields from the request
-//               const formFields = input.formFields;
-//               const name = formFields.find((f) => f.id === "name")?.value;
-//               const phone = formFields.find((f) => f.id === "phone")?.value;
+export const SuperTokensConfig: TypeInput = {
+  supertokens: {
+    // this is the location of the SuperTokens core.
+    connectionURI: config.SuperTokensUrl,
+    apiKey: config.SuperTokensApiKey,
+  },
+  appInfo: {
+    appName: "w9-io",
+    apiDomain: config.ApiUrl,
+    websiteDomain: config.AppUrl,
+  },
+  // recipeList contains all the modules that you want to
+  recipeList: [
+    EmailPassword.init({
+      override: {
+        functions: (originalImplementation) => {
+          return {
+            ...originalImplementation,
+            signUp: async function (input) {
+              // First we call the original implementation of signUp.
+              let response = await originalImplementation.signUp(input);
 
-//               // Call the original implementation
-//               let response =
-//                 await originalImplementation.emailPasswordSignUpPOST(input);
+              // Post sign up response, we check if it was successful
+              if (
+                response.status === "OK" &&
+                response.user.loginMethods.length === 1 &&
+                input.session === undefined
+              ) {
+                /**
+                 *
+                 * response.user contains the following info:
+                 * - emails
+                 * - id
+                 * - timeJoined
+                 * - tenantIds
+                 * - phone numbers
+                 * - third party login info
+                 * - all the login methods associated with this user.
+                 * - information about if the user's email is verified or not.
+                 *
+                 */
+                // TODO: post sign up logic
+              }
+              return response;
+            },
+            signIn: async function (input) {
+              // First we call the original implementation of signIn.
+              let response = await originalImplementation.signIn(input);
 
-//               if (response.status === "OK") {
-//                 // Save additional user data to your database
-//                 await saveUserProfile(response.user.id, {
-//                   name,
-//                   phone,
-//                   email: response.user.email,
-//                 });
-//               }
-
-//               return response;
-//             },
-//           };
-//         },
-//       },
-//     }),
-//     Session.init(),
-//     Dashboard.init(),
-//     UserRoles.init(),
-//   ],
-// };
-
-// const supertokens = require("supertokens-node");
-// const EmailPassword = require("supertokens-node/recipe/emailpassword");
-// const ThirdPartyEmailPassword = require("supertokens-node/recipe/thirdpartyemailpassword");
-// const Session = require("supertokens-node/recipe/session");
-
-// supertokens.init({
-//     framework: "express",
-//     supertokens: {
-//         connectionURI: "https://try.supertokens.com", // Replace with your core URL
-//         // apiKey: process.env.SUPERTOKENS_API_KEY, // Only needed for managed service
-//     },
-//     appInfo: {
-//         appName: "W9.io",
-//         apiDomain: "http://localhost:3001", // Your API domain
-//         websiteDomain: "http://localhost:3000", // Your frontend domain
-//         apiBasePath: "/auth",
-//         websiteBasePath: "/auth"
-//     },
-//     recipeList: [
-//         ThirdPartyEmailPassword.init({
-//             providers: [
-//                 {
-//                     config: {
-//                         thirdPartyId: "google",
-//                         clients: [{
-//                             clientId: process.env.GOOGLE_CLIENT_ID,
-//                             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-//                         }]
-//                     }
-//                 },
-//                 {
-//                     config: {
-//                         thirdPartyId: "apple",
-//                         clients: [{
-//                             clientId: process.env.APPLE_CLIENT_ID,
-//                             additionalConfig: {
-//                                 keyId: process.env.APPLE_KEY_ID,
-//                                 privateKey: process.env.APPLE_PRIVATE_KEY,
-//                                 teamId: process.env.APPLE_TEAM_ID,
-//                             }
-//                         }]
-//                     }
-//                 }
-//             ],
-//             // Override default APIs to handle custom form fields
-//             override: {
-//                 apis: (originalImplementation) => {
-//                     return {
-//                         ...originalImplementation,
-//                         emailPasswordSignUpPOST: async function (input) {
-//                             // Extract custom fields from the request
-//                             const formFields = input.formFields;
-//                             const name = formFields.find(f => f.id === "name")?.value;
-//                             const phone = formFields.find(f => f.id === "phone")?.value;
-
-//                             // Call the original implementation
-//                             let response = await originalImplementation.emailPasswordSignUpPOST(input);
-
-//                             if (response.status === "OK") {
-//                                 // Save additional user data to your database
-//                                 await saveUserProfile(response.user.id, {
-//                                     name,
-//                                     phone,
-//                                     email: response.user.email
-//                                 });
-//                             }
-
-//                             return response;
-//                         }
-//                     };
-//                 }
-//             }
-//         }),
-//         Session.init()
-//     ]
-// });
-
-// // Function to save additional user data
-// async function saveUserProfile(userId, userData) {
-//     // Implement your database logic here
-//     // For example, using Prisma, MongoDB, or any other database
-//     console.log("Saving user profile:", { userId, userData });
-
-//     // Example with a hypothetical database
-//     // await db.users.create({
-//     //     id: userId,
-//     //     name: userData.name,
-//     //     phone: userData.phone,
-//     //     email: userData.email
-//     // });
-// }
+              // Post sign up response, we check if it was successful
+              if (response.status === "OK") {
+                /**
+                 *
+                 * response.user contains the following info:
+                 * - emails
+                 * - id
+                 * - timeJoined
+                 * - tenantIds
+                 * - phone numbers
+                 * - third party login info
+                 * - all the login methods associated with this user.
+                 * - information about if the user's email is verified or not.
+                 *
+                 */
+                // TODO: post sign in logic
+              }
+              return response;
+            },
+          };
+        },
+      },
+    }),
+    ThirdParty.init({
+      signInAndUpFeature: {
+        // We have provided you with development keys which you can use for testing.
+        // IMPORTANT: Please replace them with your own OAuth keys for production use.
+        providers: [
+          {
+            config: {
+              thirdPartyId: "google",
+              clients: [
+                {
+                  clientId:
+                    "1060725074195-kmeum4crr01uirfl2op9kd5acmi9jutn.apps.googleusercontent.com",
+                  clientSecret: "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",
+                },
+              ],
+            },
+          },
+          {
+            config: {
+              thirdPartyId: "github",
+              clients: [
+                {
+                  clientId: "467101b197249757c71f",
+                  clientSecret: "e97051221f4b6426e8fe8d51486396703012f5bd",
+                },
+              ],
+            },
+          },
+          {
+            config: {
+              thirdPartyId: "apple",
+              clients: [
+                {
+                  clientId: "4398792-io.supertokens.example.service",
+                  additionalConfig: {
+                    keyId: "7M48Y4RYDL",
+                    privateKey:
+                      "-----BEGIN PRIVATE KEY-----\nMIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgu8gXs+XYkqXD6Ala9Sf/iJXzhbwcoG5dMh1OonpdJUmgCgYIKoZIzj0DAQehRANCAASfrvlFbFCYqn3I2zeknYXLwtH30JuOKestDbSfZYxZNMqhF/OzdZFTV0zc5u5s3eN+oCWbnvl0hM+9IW0UlkdA\n-----END PRIVATE KEY-----",
+                    teamId: "YWQCXGJRJL",
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    }),
+    Session.init(),
+    Dashboard.init(),
+    UserRoles.init(),
+  ],
+};
