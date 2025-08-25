@@ -1,9 +1,43 @@
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import { Form } from "react-router";
-
+import { signUp } from "supertokens-web-js/recipe/emailpassword";
 export async function loader({ request }: LoaderFunctionArgs) {
   // No data needed, just return an empty response
   return new Response(null, { status: 200 });
+}
+
+async function signUpClicked(
+  email: string,
+  password: string,
+  name: string,
+  age: number,
+  country: string
+) {
+  let response = await signUp({
+    formFields: [
+      {
+        id: "email",
+        value: email,
+      },
+      {
+        id: "password",
+        value: password,
+      },
+      {
+        id: "name",
+        value: name,
+      },
+      {
+        id: "age",
+        value: age + "",
+      },
+      {
+        id: "country",
+        value: country,
+      },
+    ],
+  });
+  // ... rest of the code
 }
 
 export default function SignIn() {
@@ -27,6 +61,12 @@ export default function SignIn() {
           <button
             type="submit"
             className="w-full p-2 bg-blue-500 text-white rounded"
+            onClick={async (e) => {
+              e.preventDefault();
+              let email = (e.target as any).email.value;
+              let password = (e.target as any).password.value;
+              await signUpClicked(email, password, "", 0, "");
+            }}
           >
             Sign In
           </button>
