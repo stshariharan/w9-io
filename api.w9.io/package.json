@@ -1,0 +1,43 @@
+{
+  "name": "api.w9.io",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx --watch server.ts",
+    "dev:tsup": "NODE_ENV=development tsup --watch",
+    "build": "tsup && npm run copy-env",
+    "build:prod": "NODE_ENV=production tsup && npm run copy-env",
+    "copy-env": "cp .env dist/.env 2>/dev/null || echo 'No .env file to copy'",
+    "start": "cd dist && node server.js",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@aws-sdk/client-ses": "^3.864.0",
+    "@elastic/elasticsearch": "^9.1.1",
+    "aws-sdk": "^2.1692.0",
+    "axios": "^1.11.0",
+    "axios-retry": "^4.5.0",
+    "cors": "^2.8.5",
+    "crypto-js": "^4.2.0",
+    "dotenv": "^17.2.1",
+    "fastify": "^5.4.0",
+    "fastify-plugin": "^5.0.1",
+    "ioredis": "^5.7.0",
+    "mssql": "^11.0.1",
+    "pg": "^8.16.3",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@types/axios": "^0.14.4",
+    "@types/crypto-js": "^4.2.2",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/mssql": "^9.1.7",
+    "@types/pg": "^8.15.5",
+    "supertokens-node": "^23.0.1",
+    "ts-node": "^10.9.2",
+    "tsup": "^8.0.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5.9.2"
+  }
+}
